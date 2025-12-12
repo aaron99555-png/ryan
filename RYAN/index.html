@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>萊恩會漲-股票合理估值計算機</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,274 +18,335 @@
         }
         /* 簡單的淡入動畫 */
         .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        /* 隱藏 Scrollbar 但保持滑動功能 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <div class="max-w-4xl mx-auto p-4 space-y-8">
+    <div class="max-w-3xl mx-auto px-4 py-6 md:py-10 space-y-6">
         
         <!-- Header -->
-        <header class="text-center space-y-2 py-6">
-            <div class="inline-flex items-center justify-center p-3 bg-blue-600 rounded-full text-white shadow-lg mb-2">
-                <i data-lucide="calculator" class="w-8 h-8"></i>
+        <header class="text-center space-y-3 pb-4">
+            <div class="inline-flex items-center justify-center p-4 bg-indigo-900 rounded-2xl text-white shadow-xl shadow-indigo-900/20 mb-2 transform transition hover:scale-105 duration-300">
+                <i data-lucide="calculator" class="w-8 h-8 md:w-10 md:h-10"></i>
             </div>
-            <h1 class="text-3xl font-bold text-slate-900">萊恩會漲-股票合理估值計算機</h1>
-            <p class="text-slate-600">選擇適合的模型，輸入數值，快速算出目標價</p>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">萊恩會漲<span class="text-indigo-600">.</span>估值計算機</h1>
+            <p class="text-sm md:text-base text-slate-500 font-medium max-w-sm mx-auto">專業投資人的隨身工具，輸入數值，精準試算合理股價</p>
         </header>
 
         <!-- Search Section -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div class="w-full md:w-1/2 relative">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">股票代號快速查詢</label>
-                    <div class="relative">
-                        <input type="text" id="search-input" placeholder="輸入代號 (例如: 2330, 2317)" 
-                               class="w-full pl-10 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                        <i data-lucide="search" class="absolute left-3 top-3.5 text-slate-400 w-5 h-5"></i>
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-1 h-full bg-indigo-600"></div>
+            <div class="flex flex-col md:flex-row gap-5 items-stretch justify-between">
+                <div class="w-full md:w-1/2 relative flex flex-col justify-center">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">股票代號查詢</label>
+                    <div class="relative group">
+                        <input type="text" id="search-input" placeholder="輸入代號 (如: 2330)" 
+                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 group-hover:bg-white group-hover:border-indigo-300">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-500 transition-colors w-5 h-5"></i>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">* 本地模擬資料庫，支援常見熱門股</p>
+                    <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                        <i data-lucide="database" class="w-3 h-3"></i> 支援熱門權值股 (模擬資料)
+                    </p>
                 </div>
 
-                <div class="w-full md:w-1/2 flex items-center gap-4 h-full pt-6" id="search-result-container">
+                <div class="w-full md:w-1/2 flex items-center md:pl-6 md:border-l md:border-slate-100" id="search-result-container">
                     <!-- JavaScript 會動態控制這裡的顯示內容 -->
-                    <div id="no-match" class="hidden flex-1 bg-slate-100 border border-slate-200 rounded-lg p-3 text-slate-400 text-sm text-center">
-                        未找到該代號資料
+                    <div id="no-match" class="hidden w-full bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 text-slate-400 text-sm text-center flex flex-col items-center justify-center gap-2 h-full min-h-[100px]">
+                        <i data-lucide="file-search" class="w-6 h-6 opacity-50"></i>
+                        <span>查無此代號資料</span>
                     </div>
-                    <div id="match-found" class="hidden flex-1 bg-green-50 border border-green-200 rounded-lg p-3 fade-in flex flex-col justify-center">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">MATCH</div>
-                                <span class="font-bold text-green-800 text-lg" id="stock-name-display">台積電 (2330)</span>
+                    <div id="match-found" class="hidden w-full bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl p-4 fade-in flex flex-col justify-center shadow-sm h-full min-h-[100px]">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">MATCH</span>
+                                <span class="font-bold text-slate-800 text-xl tracking-tight" id="stock-name-display">台積電 (2330)</span>
                             </div>
-                            <button onclick="autoFill()" class="text-sm bg-white border border-green-300 text-green-700 px-3 py-1 rounded hover:bg-green-100 flex items-center gap-1 transition-colors cursor-pointer shadow-sm">
-                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 帶入數據
-                            </button>
                         </div>
-                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-green-600 mt-2 pt-2 border-t border-green-200">
-                             <span class="flex items-center gap-1"><i data-lucide="database" class="w-3 h-3"></i> 資料來源: 公開資訊觀測站 (模擬)</span>
-                             <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> 資料日期: <span id="data-date-display">2025/12/13</span></span>
+                        <button onclick="autoFill()" class="w-full bg-white border border-emerald-200 text-emerald-700 py-2.5 px-4 rounded-lg hover:bg-emerald-600 hover:text-white hover:border-emerald-600 active:scale-95 flex items-center justify-center gap-2 transition-all font-medium shadow-sm text-sm">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> 自動帶入財報數據
+                        </button>
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-[10px] text-emerald-600/70 mt-3 pt-2 border-t border-emerald-200/50">
+                             <span class="flex items-center gap-1">資料來源: 公開資訊觀測站</span>
+                             <span class="flex items-center gap-1 font-mono">Date: <span id="data-date-display">2025/12/13</span></span>
                         </div>
+                    </div>
+                    <!-- 預設狀態 -->
+                    <div id="initial-state" class="w-full h-full min-h-[100px] flex items-center justify-center text-slate-300 text-sm border border-transparent">
+                        請輸入代號開始試算
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Method Comparison Table -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="bg-slate-100 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-                <i data-lucide="book-open" class="text-blue-600 w-5 h-5"></i>
-                <h2 class="text-lg font-semibold">估值方法對照表</h2>
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center gap-2">
+                <i data-lucide="book-open" class="text-indigo-600 w-5 h-5"></i>
+                <h2 class="text-base font-bold text-slate-700">估值方法速查</h2>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                <table class="w-full text-sm text-left whitespace-nowrap">
+                    <thead class="text-xs text-slate-500 font-semibold uppercase bg-slate-50/50 border-b border-slate-100">
                         <tr>
-                            <th class="px-6 py-3 whitespace-nowrap">估值方法</th>
-                            <th class="px-6 py-3 whitespace-nowrap">適用公司類型 (含範例)</th>
-                            <th class="px-6 py-3 whitespace-nowrap">核心公式</th>
-                            <th class="px-6 py-3 min-w-[200px]">說明</th>
+                            <th class="px-5 py-3">估值方法</th>
+                            <th class="px-5 py-3">適用類型</th>
+                            <th class="px-5 py-3">核心公式</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr class="bg-white hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-blue-600">本益比法 (P/E)</td>
-                            <td class="px-6 py-4">獲利穩定的成熟股 (如: 台積電)</td>
-                            <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = EPS × 合理倍數</td>
-                            <td class="px-6 py-4">最常見，但不適用虧損公司。</td>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-5 py-3.5 font-medium text-indigo-700">本益比 (P/E)</td>
+                            <td class="px-5 py-3.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">穩健成長</span></td>
+                            <td class="px-5 py-3.5 font-mono text-xs">股價 = EPS × 倍數</td>
                         </tr>
-                        <tr class="bg-white hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-blue-600">股價淨值比法 (P/B)</td>
-                            <td class="px-6 py-4">景氣循環股、金融股 (如: 中鋼、兆豐金)</td>
-                            <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 每股淨值 × 合理倍數</td>
-                            <td class="px-6 py-4">當獲利不穩時，看資產(淨值)較安全。</td>
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-5 py-3.5 font-medium text-indigo-700">股價淨值比 (P/B)</td>
+                            <td class="px-5 py-3.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">景氣循環</span></td>
+                            <td class="px-5 py-3.5 font-mono text-xs">股價 = 淨值 × 倍數</td>
                         </tr>
-                        <tr class="bg-white hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-blue-600">股價營收比法 (P/S)</td>
-                            <td class="px-6 py-4">新創、高成長未獲利股 (如: 軟體SaaS)</td>
-                            <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 每股營收 × 合理倍數</td>
-                            <td class="px-6 py-4">看市場佔有率與營收規模。</td>
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-5 py-3.5 font-medium text-indigo-700">葛拉漢公式</td>
+                            <td class="px-5 py-3.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">價值投資</span></td>
+                            <td class="px-5 py-3.5 font-mono text-xs">√(22.5 × EPS × 淨值)</td>
                         </tr>
-                        <tr class="bg-white hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-blue-600">葛拉漢定價法</td>
-                            <td class="px-6 py-4">傳產、價值被低估股 (如: 水泥、紡織)</td>
-                            <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">√(22.5 × EPS × 每股淨值)</td>
-                            <td class="px-6 py-4">保守型投資，同時看獲利與淨值。</td>
-                        </tr>
-                        <tr class="bg-white hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-blue-600">股利折現模型 (DDM)</td>
-                            <td class="px-6 py-4">配息穩定的定存股 (如: 中華電)</td>
-                            <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 股利 ÷ (折現率 - 成長率)</td>
-                            <td class="px-6 py-4">假設價值來自於未來領到的股息。</td>
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-5 py-3.5 font-medium text-indigo-700">股利折現 (DDM)</td>
+                            <td class="px-5 py-3.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">存股領息</span></td>
+                            <td class="px-5 py-3.5 font-mono text-xs">股利 ÷ (折現-成長)</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <div class="px-5 py-2 bg-slate-50 border-t border-slate-200 text-xs text-slate-400 text-center md:text-right">
+                <span class="inline-flex items-center gap-1"><i data-lucide="arrow-left-right" class="w-3 h-3"></i> 左右滑動查看完整表格</span>
+            </div>
         </section>
 
         <!-- Calculators Section -->
-        <section class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden ring-1 ring-slate-900/5">
             <!-- Tabs Navigation -->
-            <div class="flex overflow-x-auto border-b border-slate-200 hide-scrollbar">
-                <button onclick="switchTab('PE')" id="tab-btn-PE" class="tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-blue-600 border-b-2 border-blue-600 bg-blue-50">
-                    <i data-lucide="trending-up" class="w-5 h-5"></i> 本益比估價
+            <div class="flex overflow-x-auto border-b border-slate-200 hide-scrollbar bg-slate-50/50">
+                <button onclick="switchTab('PE')" id="tab-btn-PE" class="tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-bold flex flex-col items-center gap-2 transition-all duration-300 text-indigo-700 border-b-2 border-indigo-700 bg-white">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i> 本益比
                 </button>
-                <button onclick="switchTab('PB')" id="tab-btn-PB" class="tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50">
-                    <i data-lucide="book-open" class="w-5 h-5"></i> 股價淨值比
+                <button onclick="switchTab('PB')" id="tab-btn-PB" class="tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-medium flex flex-col items-center gap-2 transition-all duration-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-b-2 border-transparent">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> 淨值比
                 </button>
-                <button onclick="switchTab('PS')" id="tab-btn-PS" class="tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50">
-                    <i data-lucide="activity" class="w-5 h-5"></i> 股價營收比
+                <button onclick="switchTab('PS')" id="tab-btn-PS" class="tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-medium flex flex-col items-center gap-2 transition-all duration-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-b-2 border-transparent">
+                    <i data-lucide="activity" class="w-5 h-5"></i> 營收比
                 </button>
-                <button onclick="switchTab('Graham')" id="tab-btn-Graham" class="tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50">
-                    <i data-lucide="dollar-sign" class="w-5 h-5"></i> 葛拉漢公式
+                <button onclick="switchTab('Graham')" id="tab-btn-Graham" class="tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-medium flex flex-col items-center gap-2 transition-all duration-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-b-2 border-transparent">
+                    <i data-lucide="dollar-sign" class="w-5 h-5"></i> 葛拉漢
                 </button>
-                <button onclick="switchTab('DDM')" id="tab-btn-DDM" class="tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50">
+                <button onclick="switchTab('DDM')" id="tab-btn-DDM" class="tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-medium flex flex-col items-center gap-2 transition-all duration-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-b-2 border-transparent">
                     <i data-lucide="calculator" class="w-5 h-5"></i> 股利折現
                 </button>
             </div>
 
-            <div class="p-6 md:p-8">
+            <div class="p-5 md:p-8 bg-white">
                 
                 <!-- PE Calculator -->
                 <div id="content-PE" class="tab-content active fade-in space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
-                        <i data-lucide="info" class="shrink-0 mt-0.5 w-4 h-4"></i>
-                        <p>
-                            公式：<strong>合理股價 = 預估 EPS × 合理本益比</strong><br/>
-                            建議輸入「未來一年的預估 EPS」以及該股票「過去 3-5 年的平均本益比區間」。
-                        </p>
+                    <div class="bg-indigo-50/80 p-4 rounded-xl text-sm text-indigo-900 border border-indigo-100 flex gap-3">
+                        <i data-lucide="info" class="shrink-0 mt-0.5 w-5 h-5 text-indigo-600"></i>
+                        <div>
+                            <p class="font-bold mb-1">公式：合理股價 = 預估 EPS × 合理本益比</p>
+                            <p class="text-indigo-700/80 text-xs leading-relaxed">建議輸入「未來一年的預估 EPS」以及該股票「過去 3-5 年的平均本益比區間」。</p>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">每股盈餘 (EPS)</label>
-                                <input type="number" id="pe-eps" oninput="calculatePE()" placeholder="例如: 10" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">每股盈餘 (EPS)</label>
+                                <div class="relative">
+                                    <input type="number" id="pe-eps" oninput="calculatePE()" placeholder="例如: 10" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">合理本益比倍數 (P/E)</label>
-                                <input type="number" id="pe-ratio" oninput="calculatePE()" placeholder="例如: 15" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">合理本益比 (P/E)</label>
+                                <div class="relative">
+                                    <input type="number" id="pe-ratio" oninput="calculatePE()" placeholder="例如: 15" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">倍</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-lg">
-                            <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
-                            <span id="pe-result" class="text-4xl font-bold text-green-400">---</span>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10">
+                                <i data-lucide="trending-up" class="w-24 h-24"></i>
+                            </div>
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Target Price</span>
+                            <span class="text-slate-300 text-sm mb-1">試算目標價</span>
+                            <span id="pe-result" class="text-4xl md:text-5xl font-extrabold text-emerald-400 tracking-tight mt-1">---</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- PB Calculator -->
                 <div id="content-PB" class="tab-content fade-in space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
-                        <i data-lucide="info" class="shrink-0 mt-0.5 w-4 h-4"></i>
-                        <p>
-                            公式：<strong>合理股價 = 每股淨值 × 合理股價淨值比</strong><br/>
-                            適合用於獲利不穩定但資產價值明確的公司（如鋼鐵、航運、金融）。
-                        </p>
+                    <div class="bg-indigo-50/80 p-4 rounded-xl text-sm text-indigo-900 border border-indigo-100 flex gap-3">
+                        <i data-lucide="info" class="shrink-0 mt-0.5 w-5 h-5 text-indigo-600"></i>
+                        <div>
+                            <p class="font-bold mb-1">公式：合理股價 = 每股淨值 × 合理淨值比</p>
+                            <p class="text-indigo-700/80 text-xs leading-relaxed">適合用於獲利不穩定但資產價值明確的公司（如鋼鐵、航運、金融）。</p>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">每股淨值 (NAV)</label>
-                                <input type="number" id="pb-nav" oninput="calculatePB()" placeholder="例如: 25.5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">每股淨值 (NAV)</label>
+                                <div class="relative">
+                                    <input type="number" id="pb-nav" oninput="calculatePB()" placeholder="例如: 25.5" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">合理股價淨值比 (P/B)</label>
-                                <input type="number" id="pb-ratio" oninput="calculatePB()" placeholder="例如: 1.2" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">合理淨值比 (P/B)</label>
+                                <div class="relative">
+                                    <input type="number" id="pb-ratio" oninput="calculatePB()" placeholder="例如: 1.2" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">倍</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-lg">
-                            <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
-                            <span id="pb-result" class="text-4xl font-bold text-green-400">---</span>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10">
+                                <i data-lucide="book-open" class="w-24 h-24"></i>
+                            </div>
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Target Price</span>
+                            <span class="text-slate-300 text-sm mb-1">試算目標價</span>
+                            <span id="pb-result" class="text-4xl md:text-5xl font-extrabold text-emerald-400 tracking-tight mt-1">---</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- PS Calculator -->
                 <div id="content-PS" class="tab-content fade-in space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
-                        <i data-lucide="info" class="shrink-0 mt-0.5 w-4 h-4"></i>
-                        <p>
-                            公式：<strong>合理股價 = 每股營收 × 合理股價營收比</strong><br/>
-                            適用於尚未獲利但營收成長快速的新創公司。
-                        </p>
+                    <div class="bg-indigo-50/80 p-4 rounded-xl text-sm text-indigo-900 border border-indigo-100 flex gap-3">
+                        <i data-lucide="info" class="shrink-0 mt-0.5 w-5 h-5 text-indigo-600"></i>
+                        <div>
+                            <p class="font-bold mb-1">公式：合理股價 = 每股營收 × 合理營收比</p>
+                            <p class="text-indigo-700/80 text-xs leading-relaxed">適用於尚未獲利但營收成長快速的新創公司 (總營收 ÷ 總股數)。</p>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">每股營收 (Sales Per Share)</label>
-                                <input type="number" id="ps-sales" oninput="calculatePS()" placeholder="總營收 ÷ 總股數" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">每股營收 (SPS)</label>
+                                <div class="relative">
+                                    <input type="number" id="ps-sales" oninput="calculatePS()" placeholder="總營收 ÷ 總股數" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">合理股價營收比 (P/S)</label>
-                                <input type="number" id="ps-ratio" oninput="calculatePS()" placeholder="例如: 4.5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">合理營收比 (P/S)</label>
+                                <div class="relative">
+                                    <input type="number" id="ps-ratio" oninput="calculatePS()" placeholder="例如: 4.5" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">倍</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-lg">
-                            <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
-                            <span id="ps-result" class="text-4xl font-bold text-green-400">---</span>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10">
+                                <i data-lucide="activity" class="w-24 h-24"></i>
+                            </div>
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Target Price</span>
+                            <span class="text-slate-300 text-sm mb-1">試算目標價</span>
+                            <span id="ps-result" class="text-4xl md:text-5xl font-extrabold text-emerald-400 tracking-tight mt-1">---</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Graham Calculator -->
                 <div id="content-Graham" class="tab-content fade-in space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
-                        <i data-lucide="info" class="shrink-0 mt-0.5 w-4 h-4"></i>
-                        <p>
-                            公式：<strong>合理價 = √(22.5 × EPS × 每股淨值)</strong><br/>
-                            這是價值投資之父葛拉漢提出的保守估值法，假設合理本益比 15 倍 × 合理淨值比 1.5 倍 = 22.5。
-                        </p>
+                    <div class="bg-indigo-50/80 p-4 rounded-xl text-sm text-indigo-900 border border-indigo-100 flex gap-3">
+                        <i data-lucide="info" class="shrink-0 mt-0.5 w-5 h-5 text-indigo-600"></i>
+                        <div>
+                            <p class="font-bold mb-1">公式：合理價 = √(22.5 × EPS × 每股淨值)</p>
+                            <p class="text-indigo-700/80 text-xs leading-relaxed">葛拉漢保守估值法：假設合理本益比 15 倍 × 合理淨值比 1.5 倍 = 系數 22.5。</p>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">每股盈餘 (EPS)</label>
-                                <input type="number" id="graham-eps" oninput="calculateGraham()" placeholder="例如: 5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">每股盈餘 (EPS)</label>
+                                <div class="relative">
+                                    <input type="number" id="graham-eps" oninput="calculateGraham()" placeholder="例如: 5" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">每股淨值 (NAV)</label>
-                                <input type="number" id="graham-nav" oninput="calculateGraham()" placeholder="例如: 40" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">每股淨值 (NAV)</label>
+                                <div class="relative">
+                                    <input type="number" id="graham-nav" oninput="calculateGraham()" placeholder="例如: 40" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-lg">
-                            <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">葛拉漢合理價</span>
-                            <span id="graham-result" class="text-4xl font-bold text-green-400">---</span>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10">
+                                <i data-lucide="dollar-sign" class="w-24 h-24"></i>
+                            </div>
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Fair Value</span>
+                            <span class="text-slate-300 text-sm mb-1">葛拉漢合理價</span>
+                            <span id="graham-result" class="text-4xl md:text-5xl font-extrabold text-emerald-400 tracking-tight mt-1">---</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- DDM Calculator -->
                 <div id="content-DDM" class="tab-content fade-in space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
-                        <i data-lucide="info" class="shrink-0 mt-0.5 w-4 h-4"></i>
-                        <p>
-                            公式 (高登模型)：<strong>股價 = 明年股利 ÷ (折現率 - 成長率)</strong><br/>
-                            注意：折現率 (您期望的報酬率) 必須大於 股利成長率，否則公式無效。
-                        </p>
+                    <div class="bg-indigo-50/80 p-4 rounded-xl text-sm text-indigo-900 border border-indigo-100 flex gap-3">
+                        <i data-lucide="info" class="shrink-0 mt-0.5 w-5 h-5 text-indigo-600"></i>
+                        <div>
+                            <p class="font-bold mb-1">公式：股價 = 明年股利 ÷ (折現率 - 成長率)</p>
+                            <p class="text-indigo-700/80 text-xs leading-relaxed">注意：折現率 (您期望的報酬率) 必須大於 股利成長率，否則公式無效。</p>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">預估明年股利 (D1)</label>
-                                <input type="number" id="ddm-dividend" oninput="calculateDDM()" placeholder="例如: 3.5" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">預估明年股利 (D1)</label>
+                                <div class="relative">
+                                    <input type="number" id="ddm-dividend" oninput="calculateDDM()" placeholder="例如: 3.5" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">元</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">折現率 (期望報酬率 %)</label>
-                                <input type="number" id="ddm-rate" oninput="calculateDDM()" placeholder="通常設 5~10，例如: 8" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">折現率 (期望報酬率)</label>
+                                <div class="relative">
+                                    <input type="number" id="ddm-rate" oninput="calculateDDM()" placeholder="例如: 8" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">股利長期成長率 (%)</label>
-                                <input type="number" id="ddm-growth" oninput="calculateDDM()" placeholder="保守估計，例如: 3" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">股利長期成長率</label>
+                                <div class="relative">
+                                    <input type="number" id="ddm-growth" oninput="calculateDDM()" placeholder="保守估計: 3" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-lg">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center shadow-lg">
-                            <span class="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
-                            <span id="ddm-result" class="text-4xl font-bold text-green-400">---</span>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-3 opacity-10">
+                                <i data-lucide="calculator" class="w-24 h-24"></i>
+                            </div>
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Target Price</span>
+                            <span class="text-slate-300 text-sm mb-1">試算目標價</span>
+                            <span id="ddm-result" class="text-4xl md:text-5xl font-extrabold text-emerald-400 tracking-tight mt-1">---</span>
                         </div>
                     </div>
                 </div>
@@ -294,7 +355,7 @@
         </section>
 
         <!-- Footer -->
-        <footer class="text-center text-slate-500 text-sm pb-8">
+        <footer class="text-center text-slate-400 text-xs pb-10 pt-4">
             <p>免責聲明：本工具僅供教學與試算使用，不代表任何投資建議。投資一定有風險，投資前請務必自行評估。</p>
         </footer>
 
@@ -342,12 +403,13 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('content-' + tabId).classList.add('active');
 
-            // 更新按鈕樣式
+            // 重置所有按鈕樣式
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = 'tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50';
+                btn.className = 'tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-medium flex flex-col items-center gap-2 transition-all duration-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-b-2 border-transparent';
             });
+            // 設置當前按鈕樣式
             const activeBtn = document.getElementById('tab-btn-' + tabId);
-            activeBtn.className = 'tab-btn flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 text-blue-600 border-b-2 border-blue-600 bg-blue-50';
+            activeBtn.className = 'tab-btn flex-none w-[100px] md:w-auto md:flex-1 py-4 px-2 text-xs md:text-sm font-bold flex flex-col items-center gap-2 transition-all duration-300 text-indigo-700 border-b-2 border-indigo-700 bg-white';
         }
 
         // 搜尋邏輯
@@ -355,6 +417,7 @@
             const query = e.target.value.trim();
             const matchDiv = document.getElementById('match-found');
             const noMatchDiv = document.getElementById('no-match');
+            const initialStateDiv = document.getElementById('initial-state');
             const nameDisplay = document.getElementById('stock-name-display');
 
             if (MOCK_STOCK_DB[query]) {
@@ -363,17 +426,19 @@
                 nameDisplay.textContent = `${stock.name} (${query})`;
                 matchDiv.classList.remove('hidden');
                 noMatchDiv.classList.add('hidden');
+                initialStateDiv.classList.add('hidden');
                 
-                // 重新初始化圖標，以確保新顯示區域的圖標正確顯示
                 lucide.createIcons();
             } else if (query.length >= 4) {
                 currentFoundStock = null;
                 matchDiv.classList.add('hidden');
                 noMatchDiv.classList.remove('hidden');
+                initialStateDiv.classList.add('hidden');
             } else {
                 currentFoundStock = null;
                 matchDiv.classList.add('hidden');
                 noMatchDiv.classList.add('hidden');
+                initialStateDiv.classList.remove('hidden');
             }
         });
 
@@ -464,7 +529,7 @@
             }
 
             if (r <= g) {
-                document.getElementById('ddm-result').textContent = "折現率需大於成長率";
+                document.getElementById('ddm-result').textContent = "需 > 成長率";
                 return;
             }
 
