@@ -1,313 +1,323 @@
-﻿<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>萊恩會漲粉絲忠誠度測驗</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+import React, { useState } from 'react';
+import { Calculator, BookOpen, TrendingUp, DollarSign, Activity, Info } from 'lucide-react';
+
+const StockValuationCalculator = () => {
+  const [activeTab, setActiveTab] = useState('PE');
+
+  // State for P/E Valuation
+  const [peEPS, setPeEPS] = useState('');
+  const [peRatio, setPeRatio] = useState('');
+  
+  // State for P/B Valuation
+  const [pbNAV, setPbNAV] = useState(''); // Net Asset Value (Book Value)
+  const [pbRatio, setPbRatio] = useState('');
+
+  // State for P/S Valuation
+  const [psSales, setPsSales] = useState('');
+  const [psRatio, setPsRatio] = useState('');
+
+  // State for Graham Number
+  const [grahamEPS, setGrahamEPS] = useState('');
+  const [grahamNAV, setGrahamNAV] = useState('');
+
+  // State for DDM (Gordon)
+  const [ddmDividend, setDdmDividend] = useState('');
+  const [ddmRate, setDdmRate] = useState(''); // Required Rate of Return
+  const [ddmGrowth, setDdmGrowth] = useState('');
+
+  // Helper to format currency
+  const formatCurrency = (val) => {
+    const num = parseFloat(val);
+    if (isNaN(num) || !isFinite(num)) return '---';
+    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD' }).format(num);
+  };
+
+  // Calculations
+  const calculatePE = () => {
+    const res = parseFloat(peEPS) * parseFloat(peRatio);
+    return formatCurrency(res);
+  };
+
+  const calculatePB = () => {
+    const res = parseFloat(pbNAV) * parseFloat(pbRatio);
+    return formatCurrency(res);
+  };
+
+  const calculatePS = () => {
+    const res = parseFloat(psSales) * parseFloat(psRatio);
+    return formatCurrency(res);
+  };
+
+  const calculateGraham = () => {
+    // Sqrt(22.5 * EPS * NAV)
+    const val = 22.5 * parseFloat(grahamEPS) * parseFloat(grahamNAV);
+    if (val < 0) return "無法計算 (數值為負)";
+    const res = Math.sqrt(val);
+    return formatCurrency(res);
+  };
+
+  const calculateDDM = () => {
+    const d1 = parseFloat(ddmDividend);
+    const r = parseFloat(ddmRate) / 100;
+    const g = parseFloat(ddmGrowth) / 100;
+
+    if (r <= g) return "無效 (折現率需 > 成長率)";
+    
+    const res = d1 / (r - g);
+    return formatCurrency(res);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-800">
+      <div className="max-w-4xl mx-auto space-y-8">
         
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-        }
+        {/* Header */}
+        <header className="text-center space-y-2 py-6">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-full text-white shadow-lg mb-2">
+            <Calculator size={32} />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900">股票合理估值計算機</h1>
+          <p className="text-slate-600">選擇適合的模型，輸入數值，快速算出目標價</p>
+        </header>
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
-        .animate-scale-in {
-            animation: scaleIn 0.5s ease-out forwards;
-        }
-        
-        /* Progress Bar Transition */
-        .progress-bar {
-            transition: width 0.5s ease-out;
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        {/* Section 1: Comparison Table */}
+        <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-slate-100 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+            <BookOpen className="text-blue-600" size={20} />
+            <h2 className="text-lg font-semibold">估值方法對照表</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-slate-500 uppercase bg-slate-50">
+                <tr>
+                  <th className="px-6 py-3">估值方法</th>
+                  <th className="px-6 py-3">適用公司類型</th>
+                  <th className="px-6 py-3">核心公式</th>
+                  <th className="px-6 py-3">說明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">本益比法 (P/E)</td>
+                  <td className="px-6 py-4">獲利穩定的成熟股 (如: 台積電)</td>
+                  <td className="px-6 py-4 font-mono text-xs bg-slate-50 rounded">股價 = EPS × 合理倍數</td>
+                  <td className="px-6 py-4">最常見，但不適用虧損公司。</td>
+                </tr>
+                <tr className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">股價淨值比法 (P/B)</td>
+                  <td className="px-6 py-4">景氣循環股、金融股 (如: 中鋼、兆豐金)</td>
+                  <td className="px-6 py-4 font-mono text-xs bg-slate-50 rounded">股價 = 每股淨值 × 合理倍數</td>
+                  <td className="px-6 py-4">當獲利不穩時，看資產(淨值)較安全。</td>
+                </tr>
+                <tr className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">股價營收比法 (P/S)</td>
+                  <td className="px-6 py-4">新創、高成長但尚未獲利 (如: SaaS軟體)</td>
+                  <td className="px-6 py-4 font-mono text-xs bg-slate-50 rounded">股價 = 每股營收 × 合理倍數</td>
+                  <td className="px-6 py-4">看市場佔有率與營收規模。</td>
+                </tr>
+                <tr className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">葛拉漢定價法</td>
+                  <td className="px-6 py-4">傳產、價值被低估的大型股</td>
+                  <td className="px-6 py-4 font-mono text-xs bg-slate-50 rounded">√(22.5 × EPS × 每股淨值)</td>
+                  <td className="px-6 py-4">保守型投資人的最愛，同時看獲利與淨值。</td>
+                </tr>
+                <tr className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-blue-600">股利折現模型 (DDM)</td>
+                  <td className="px-6 py-4">配息穩定的定存股 (如: 中華電)</td>
+                  <td className="px-6 py-4 font-mono text-xs bg-slate-50 rounded">股價 = 股利 ÷ (折現率 - 成長率)</td>
+                  <td className="px-6 py-4">假設價值來自於未來領到的股息。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-    <div id="app" class="w-full max-w-md"></div>
+        {/* Section 2: Calculators */}
+        <section className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex overflow-x-auto border-b border-slate-200">
+            {[
+              { id: 'PE', label: '本益比估價', icon: TrendingUp },
+              { id: 'PB', label: '股價淨值比', icon: BookOpen },
+              { id: 'PS', label: '股價營收比', icon: Activity },
+              { id: 'Graham', label: '葛拉漢公式', icon: DollarSign },
+              { id: 'DDM', label: '股利折現', icon: Calculator },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[120px] py-4 px-2 text-sm font-medium flex flex-col items-center gap-2 transition-colors duration-200 ${
+                  activeTab === tab.id
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <tab.icon size={20} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-    <script>
-        // --- 資料設定 ---
-        const questions = [
-            {
-                id: 1,
-                question: "我們的核心口號是？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
-                options: [
-                    { id: 'A', text: "穩健獲利" },
-                    { id: 'B', text: "相信萊恩" },
-                    { id: 'C', text: "財富自由" },
-                    { id: 'D', text: "追隨趨勢" }
-                ],
-                correctAnswer: 'B'
-            },
-            {
-                id: 2,
-                question: "萊恩最愛買入哪種類型的股票？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
-                options: [
-                    { id: 'A', text: "底部起漲" },
-                    { id: 'B', text: "歷史新高" },
-                    { id: 'C', text: "高股息存股" },
-                    { id: 'D', text: "隔日沖飆股" }
-                ],
-                correctAnswer: 'A'
-            },
-            {
-                id: 3,
-                question: "請問萊恩住在哪個縣市？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
-                options: [
-                    { id: 'A', text: "台北" },
-                    { id: 'B', text: "台中" },
-                    { id: 'C', text: "新竹" },
-                    { id: 'D', text: "桃園" }
-                ],
-                correctAnswer: 'D'
-            },
-            {
-                id: 4,
-                question: "萊恩都買突破甚麼線的股票？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
-                options: [
-                    { id: 'A', text: "年線" },
-                    { id: 'B', text: "月季線" },
-                    { id: 'C', text: "五日線" },
-                    { id: 'D', text: "半年線" }
-                ],
-                correctAnswer: 'B'
-            },
-            {
-                id: 5,
-                question: "大家公認萊恩甚麼最厲害？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-500"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>`,
-                options: [
-                    { id: 'A', text: "炒飯" },
-                    { id: 'B', text: "技術分析" },
-                    { id: 'C', text: "嘴砲" },
-                    { id: 'D', text: "唱歌" }
-                ],
-                correctAnswer: 'C'
-            },
-            {
-                id: 6,
-                question: "萊恩今年幾歲？",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
-                options: [
-                    { id: 'A', text: "18歲" },
-                    { id: 'B', text: "25歲" },
-                    { id: 'C', text: "28歲" },
-                    { id: 'D', text: "35歲" }
-                ],
-                correctAnswer: 'C'
-            }
-        ];
-
-        // --- 狀態管理 ---
-        let gameState = 'start'; // start, playing, result
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let isAnswered = false;
-        let selectedOption = null;
-
-        const app = document.getElementById('app');
-
-        // --- 渲染函數 ---
-
-        function renderStart() {
-            app.innerHTML = `
-                <div class="bg-white w-full rounded-2xl shadow-xl overflow-hidden p-8 text-center animate-fade-in-up">
-                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17"/><path d="M14 14.66V17"/><path d="M18 2l-7.95 8.95L7 8l2.95 2.95L20 2"/></svg>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">萊恩會漲<br/>粉絲忠誠度測驗</h1>
-                    <p class="text-gray-600 mb-8">
-                        你真的了解萊恩嗎？<br/>
-                        快來測試看看你的信仰值有多少！
-                    </p>
-                    <button onclick="startGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-300 flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        開始測驗 
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </button>
+          <div className="p-6 md:p-8">
+            {/* PE Calculator */}
+            {activeTab === 'PE' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
+                  <Info className="shrink-0 mt-0.5" size={16} />
+                  <p>
+                    公式：<strong>合理股價 = 預估 EPS × 合理本益比</strong><br/>
+                    建議輸入「未來一年的預估 EPS」以及該股票「過去 3-5 年的平均本益比區間」。
+                  </p>
                 </div>
-            `;
-        }
-
-        function renderQuestion() {
-            const q = questions[currentQuestionIndex];
-            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-
-            let optionsHtml = q.options.map(opt => {
-                let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center group mb-3 ";
-                let iconHtml = "";
-
-                if (!isAnswered) {
-                    btnClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer";
-                    // 綁定點擊事件
-                    return `<button onclick="handleAnswer('${opt.id}')" class="${btnClass}">
-                                <span class="font-medium text-lg">${opt.text}</span>
-                            </button>`;
-                } else {
-                    if (opt.id === q.correctAnswer) {
-                        btnClass += "border-green-500 bg-green-50 text-green-700";
-                        iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`;
-                    } else if (opt.id === selectedOption) {
-                        btnClass += "border-red-500 bg-red-50 text-red-700";
-                        iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
-                    } else {
-                        btnClass += "border-gray-100 text-gray-400 opacity-50 cursor-not-allowed";
-                    }
-                    return `<button disabled class="${btnClass}">
-                                <span class="font-medium text-lg">${opt.text}</span>
-                                ${iconHtml}
-                            </button>`;
-                }
-            }).join('');
-
-            app.innerHTML = `
-                <div class="bg-white w-full rounded-2xl shadow-lg overflow-hidden flex flex-col min-h-[500px]">
-                    <div class="h-2 bg-gray-100 w-full">
-                        <div class="h-full bg-blue-500 progress-bar" style="width: ${progress}%"></div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">每股盈餘 (EPS)</label>
+                      <input type="number" value={peEPS} onChange={(e) => setPeEPS(e.target.value)} placeholder="例如: 10" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                     </div>
-
-                    <div class="p-6 flex-grow flex flex-col">
-                        <div class="flex justify-between items-center text-sm font-medium text-gray-500 mb-6">
-                            <span>第 ${currentQuestionIndex + 1} 題</span>
-                            <span>共 ${questions.length} 題</span>
-                        </div>
-
-                        <div class="mb-8">
-                            <div class="flex items-center gap-3 mb-4">
-                                ${q.icon}
-                                <h2 class="text-xl font-bold text-gray-800">問題：</h2>
-                            </div>
-                            <p class="text-lg text-gray-700 leading-relaxed font-medium pl-2 border-l-4 border-blue-500">
-                                ${q.question}
-                            </p>
-                        </div>
-
-                        <div class="mt-auto">
-                            ${optionsHtml}
-                        </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">合理本益比倍數 (P/E)</label>
+                      <input type="number" value={peRatio} onChange={(e) => setPeRatio(e.target.value)} placeholder="例如: 15" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                     </div>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
+                    <span className="text-4xl font-bold text-green-400">{calculatePE()}</span>
+                  </div>
                 </div>
-            `;
-        }
+              </div>
+            )}
 
-        function renderResult() {
-            let feedback = {};
-            if (score === questions.length) {
-                feedback = {
-                    title: "骨灰級鐵粉",
-                    desc: "太神啦！你連萊恩穿什麼內褲都知道吧！請收下我的膝蓋，這才是真愛。",
-                    color: "text-yellow-600",
-                    ringColor: "text-yellow-500"
-                };
-            } else if (score >= 4) {
-                feedback = {
-                    title: "資深專業萊粉",
-                    desc: "不錯喔！看來你有認真在追隨萊恩的腳步，獲利滿滿，只差一點點就完美了！",
-                    color: "text-green-600",
-                    ringColor: "text-blue-600"
-                };
-            } else if (score >= 2) {
-                feedback = {
-                    title: "路過的吃瓜群眾",
-                    desc: "看來你是新來的喔？還是剛好路過？趕快多看幾次直播補補課吧！",
-                    color: "text-blue-600",
-                    ringColor: "text-blue-600"
-                };
-            } else {
-                feedback = {
-                    title: "你是假粉吧？",
-                    desc: "這分數...你是來亂的嗎？快去把每一集影片都刷十遍再來挑戰！",
-                    color: "text-gray-600",
-                    ringColor: "text-blue-600"
-                };
-            }
-
-            // SVG Circle calculations
-            const radius = 58;
-            const circumference = 2 * Math.PI * radius; // approx 364.4
-            const dashOffset = circumference - (score / questions.length) * circumference;
-
-            app.innerHTML = `
-                <div class="bg-white w-full rounded-2xl shadow-xl overflow-hidden p-8 text-center animate-scale-in">
-                    <div class="mb-6 relative">
-                        <svg class="w-32 h-32 mx-auto transform -rotate-90">
-                            <circle class="text-gray-200" stroke-width="8" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
-                            <circle class="${feedback.ringColor}" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
-                        </svg>
-                        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center flex-col">
-                            <span class="text-4xl font-bold text-gray-800">${score}</span>
-                            <span class="text-xs text-gray-500">/ ${questions.length} 題</span>
-                        </div>
-                    </div>
-                    
-                    <h2 class="text-3xl font-bold mb-3 ${feedback.color}">${feedback.title}</h2>
-                    <p class="text-gray-600 mb-8 text-lg">${feedback.desc}</p>
-                    
-                    <button onclick="startGame()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                        再測一次
-                    </button>
+            {/* PB Calculator */}
+            {activeTab === 'PB' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
+                  <Info className="shrink-0 mt-0.5" size={16} />
+                  <p>
+                    公式：<strong>合理股價 = 每股淨值 × 合理股價淨值比</strong><br/>
+                    適合用於獲利不穩定但資產價值明確的公司（如鋼鐵、航運、金融）。
+                  </p>
                 </div>
-            `;
-        }
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">每股淨值 (NAV)</label>
+                      <input type="number" value={pbNAV} onChange={(e) => setPbNAV(e.target.value)} placeholder="例如: 25.5" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">合理股價淨值比 (P/B)</label>
+                      <input type="number" value={pbRatio} onChange={(e) => setPbRatio(e.target.value)} placeholder="例如: 1.2" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
+                    <span className="text-4xl font-bold text-green-400">{calculatePB()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        // --- 邏輯控制 ---
+            {/* PS Calculator */}
+            {activeTab === 'PS' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
+                  <Info className="shrink-0 mt-0.5" size={16} />
+                  <p>
+                    公式：<strong>合理股價 = 每股營收 × 合理股價營收比</strong><br/>
+                    適用於尚未獲利但營收成長快速的新創公司。
+                  </p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">每股營收 (Sales Per Share)</label>
+                      <input type="number" value={psSales} onChange={(e) => setPsSales(e.target.value)} placeholder="總營收 ÷ 總股數" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">合理股價營收比 (P/S)</label>
+                      <input type="number" value={psRatio} onChange={(e) => setPsRatio(e.target.value)} placeholder="例如: 4.5" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
+                    <span className="text-4xl font-bold text-green-400">{calculatePS()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        function startGame() {
-            gameState = 'playing';
-            currentQuestionIndex = 0;
-            score = 0;
-            isAnswered = false;
-            selectedOption = null;
-            renderQuestion();
-        }
+            {/* Graham Calculator */}
+            {activeTab === 'Graham' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
+                  <Info className="shrink-0 mt-0.5" size={16} />
+                  <p>
+                    公式：<strong>合理價 = √(22.5 × EPS × 每股淨值)</strong><br/>
+                    這是價值投資之父葛拉漢提出的保守估值法，假設合理本益比 15 倍 × 合理淨值比 1.5 倍 = 22.5。
+                  </p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">每股盈餘 (EPS)</label>
+                      <input type="number" value={grahamEPS} onChange={(e) => setGrahamEPS(e.target.value)} placeholder="例如: 5" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">每股淨值 (NAV)</label>
+                      <input type="number" value={grahamNAV} onChange={(e) => setGrahamNAV(e.target.value)} placeholder="例如: 40" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-400 text-sm uppercase tracking-wider mb-2">葛拉漢合理價</span>
+                    <span className="text-4xl font-bold text-green-400">{calculateGraham()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        function handleAnswer(id) {
-            if (isAnswered) return;
-            
-            isAnswered = true;
-            selectedOption = id;
-            
-            const q = questions[currentQuestionIndex];
-            if (id === q.correctAnswer) {
-                score++;
-            }
+            {/* DDM Calculator */}
+            {activeTab === 'DDM' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex gap-2">
+                  <Info className="shrink-0 mt-0.5" size={16} />
+                  <p>
+                    公式 (高登模型)：<strong>股價 = 明年股利 ÷ (折現率 - 成長率)</strong><br/>
+                    注意：折現率 (您期望的報酬率) 必須大於 股利成長率，否則公式無效。
+                  </p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">預估明年股利 (D1)</label>
+                      <input type="number" value={ddmDividend} onChange={(e) => setDdmDividend(e.target.value)} placeholder="例如: 3.5" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">折現率 (期望報酬率 %)</label>
+                      <input type="number" value={ddmRate} onChange={(e) => setDdmRate(e.target.value)} placeholder="通常設 5~10，例如: 8" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">股利長期成長率 (%)</label>
+                      <input type="number" value={ddmGrowth} onChange={(e) => setDdmGrowth(e.target.value)} placeholder="保守估計，例如: 3" className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-400 text-sm uppercase tracking-wider mb-2">試算目標價</span>
+                    <span className="text-4xl font-bold text-green-400">{calculateDDM()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
 
-            // 更新畫面顯示結果 (正確/錯誤樣式)
-            renderQuestion();
+        {/* Footer Info */}
+        <footer className="text-center text-slate-500 text-sm pb-8">
+          <p>免責聲明：本工具僅供教學與試算使用，不代表任何投資建議。投資一定有風險，投資前請務必自行評估。</p>
+        </footer>
 
-            // 延遲跳轉
-            setTimeout(() => {
-                if (currentQuestionIndex < questions.length - 1) {
-                    currentQuestionIndex++;
-                    isAnswered = false;
-                    selectedOption = null;
-                    renderQuestion();
-                } else {
-                    gameState = 'result';
-                    renderResult();
-                }
-            }, 1000);
-        }
+      </div>
+    </div>
+  );
+};
 
-        // 初始渲染
-        renderStart();
-
-    </script>
-</body>
-</html>
+export default StockValuationCalculator;
