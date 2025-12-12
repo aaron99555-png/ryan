@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萊恩會漲粉絲忠誠度測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease-out forwards;
+        }
+        
+        /* Progress Bar Transition */
+        .progress-bar {
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-md"></div>
+
+    <script>
+        // --- 資料設定 ---
+        const questions = [
+            {
+                id: 1,
+                question: "我們的核心口號是？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+                options: [
+                    { id: 'A', text: "穩健獲利" },
+                    { id: 'B', text: "相信萊恩" },
+                    { id: 'C', text: "財富自由" },
+                    { id: 'D', text: "追隨趨勢" }
+                ],
+                correctAnswer: 'B'
+            },
+            {
+                id: 2,
+                question: "萊恩最愛買入哪種類型的股票？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+                options: [
+                    { id: 'A', text: "底部起漲" },
+                    { id: 'B', text: "歷史新高" },
+                    { id: 'C', text: "高股息存股" },
+                    { id: 'D', text: "隔日沖飆股" }
+                ],
+                correctAnswer: 'A'
+            },
+            {
+                id: 3,
+                question: "請問萊恩住在哪個縣市？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+                options: [
+                    { id: 'A', text: "台北" },
+                    { id: 'B', text: "台中" },
+                    { id: 'C', text: "新竹" },
+                    { id: 'D', text: "桃園" }
+                ],
+                correctAnswer: 'D'
+            },
+            {
+                id: 4,
+                question: "萊恩都買突破甚麼線的股票？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+                options: [
+                    { id: 'A', text: "年線" },
+                    { id: 'B', text: "月季線" },
+                    { id: 'C', text: "五日線" },
+                    { id: 'D', text: "半年線" }
+                ],
+                correctAnswer: 'B'
+            },
+            {
+                id: 5,
+                question: "大家公認萊恩甚麼最厲害？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-500"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/></svg>`,
+                options: [
+                    { id: 'A', text: "炒飯" },
+                    { id: 'B', text: "技術分析" },
+                    { id: 'C', text: "嘴砲" },
+                    { id: 'D', text: "唱歌" }
+                ],
+                correctAnswer: 'C'
+            },
+            {
+                id: 6,
+                question: "萊恩今年幾歲？",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+                options: [
+                    { id: 'A', text: "18歲" },
+                    { id: 'B', text: "25歲" },
+                    { id: 'C', text: "28歲" },
+                    { id: 'D', text: "35歲" }
+                ],
+                correctAnswer: 'C'
+            }
+        ];
+
+        // --- 狀態管理 ---
+        let gameState = 'start'; // start, playing, result
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+        let selectedOption = null;
+
+        const app = document.getElementById('app');
+
+        // --- 渲染函數 ---
+
+        function renderStart() {
+            app.innerHTML = `
+                <div class="bg-white w-full rounded-2xl shadow-xl overflow-hidden p-8 text-center animate-fade-in-up">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17"/><path d="M14 14.66V17"/><path d="M18 2l-7.95 8.95L7 8l2.95 2.95L20 2"/></svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">萊恩會漲<br/>粉絲忠誠度測驗</h1>
+                    <p class="text-gray-600 mb-8">
+                        你真的了解萊恩嗎？<br/>
+                        快來測試看看你的信仰值有多少！
+                    </p>
+                    <button onclick="startGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-300 flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        開始測驗 
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+            let optionsHtml = q.options.map(opt => {
+                let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center group mb-3 ";
+                let iconHtml = "";
+
+                if (!isAnswered) {
+                    btnClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer";
+                    // 綁定點擊事件
+                    return `<button onclick="handleAnswer('${opt.id}')" class="${btnClass}">
+                                <span class="font-medium text-lg">${opt.text}</span>
+                            </button>`;
+                } else {
+                    if (opt.id === q.correctAnswer) {
+                        btnClass += "border-green-500 bg-green-50 text-green-700";
+                        iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`;
+                    } else if (opt.id === selectedOption) {
+                        btnClass += "border-red-500 bg-red-50 text-red-700";
+                        iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+                    } else {
+                        btnClass += "border-gray-100 text-gray-400 opacity-50 cursor-not-allowed";
+                    }
+                    return `<button disabled class="${btnClass}">
+                                <span class="font-medium text-lg">${opt.text}</span>
+                                ${iconHtml}
+                            </button>`;
+                }
+            }).join('');
+
+            app.innerHTML = `
+                <div class="bg-white w-full rounded-2xl shadow-lg overflow-hidden flex flex-col min-h-[500px]">
+                    <div class="h-2 bg-gray-100 w-full">
+                        <div class="h-full bg-blue-500 progress-bar" style="width: ${progress}%"></div>
+                    </div>
+
+                    <div class="p-6 flex-grow flex flex-col">
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-500 mb-6">
+                            <span>第 ${currentQuestionIndex + 1} 題</span>
+                            <span>共 ${questions.length} 題</span>
+                        </div>
+
+                        <div class="mb-8">
+                            <div class="flex items-center gap-3 mb-4">
+                                ${q.icon}
+                                <h2 class="text-xl font-bold text-gray-800">問題：</h2>
+                            </div>
+                            <p class="text-lg text-gray-700 leading-relaxed font-medium pl-2 border-l-4 border-blue-500">
+                                ${q.question}
+                            </p>
+                        </div>
+
+                        <div class="mt-auto">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResult() {
+            let feedback = {};
+            if (score === questions.length) {
+                feedback = {
+                    title: "骨灰級鐵粉",
+                    desc: "太神啦！你連萊恩穿什麼內褲都知道吧！請收下我的膝蓋，這才是真愛。",
+                    color: "text-yellow-600",
+                    ringColor: "text-yellow-500"
+                };
+            } else if (score >= 4) {
+                feedback = {
+                    title: "資深專業萊粉",
+                    desc: "不錯喔！看來你有認真在追隨萊恩的腳步，獲利滿滿，只差一點點就完美了！",
+                    color: "text-green-600",
+                    ringColor: "text-blue-600"
+                };
+            } else if (score >= 2) {
+                feedback = {
+                    title: "路過的吃瓜群眾",
+                    desc: "看來你是新來的喔？還是剛好路過？趕快多看幾次直播補補課吧！",
+                    color: "text-blue-600",
+                    ringColor: "text-blue-600"
+                };
+            } else {
+                feedback = {
+                    title: "你是假粉吧？",
+                    desc: "這分數...你是來亂的嗎？快去把每一集影片都刷十遍再來挑戰！",
+                    color: "text-gray-600",
+                    ringColor: "text-blue-600"
+                };
+            }
+
+            // SVG Circle calculations
+            const radius = 58;
+            const circumference = 2 * Math.PI * radius; // approx 364.4
+            const dashOffset = circumference - (score / questions.length) * circumference;
+
+            app.innerHTML = `
+                <div class="bg-white w-full rounded-2xl shadow-xl overflow-hidden p-8 text-center animate-scale-in">
+                    <div class="mb-6 relative">
+                        <svg class="w-32 h-32 mx-auto transform -rotate-90">
+                            <circle class="text-gray-200" stroke-width="8" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
+                            <circle class="${feedback.ringColor}" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
+                        </svg>
+                        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center flex-col">
+                            <span class="text-4xl font-bold text-gray-800">${score}</span>
+                            <span class="text-xs text-gray-500">/ ${questions.length} 題</span>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-3xl font-bold mb-3 ${feedback.color}">${feedback.title}</h2>
+                    <p class="text-gray-600 mb-8 text-lg">${feedback.desc}</p>
+                    
+                    <button onclick="startGame()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        再測一次
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- 邏輯控制 ---
+
+        function startGame() {
+            gameState = 'playing';
+            currentQuestionIndex = 0;
+            score = 0;
+            isAnswered = false;
+            selectedOption = null;
+            renderQuestion();
+        }
+
+        function handleAnswer(id) {
+            if (isAnswered) return;
+            
+            isAnswered = true;
+            selectedOption = id;
+            
+            const q = questions[currentQuestionIndex];
+            if (id === q.correctAnswer) {
+                score++;
+            }
+
+            // 更新畫面顯示結果 (正確/錯誤樣式)
+            renderQuestion();
+
+            // 延遲跳轉
+            setTimeout(() => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    currentQuestionIndex++;
+                    isAnswered = false;
+                    selectedOption = null;
+                    renderQuestion();
+                } else {
+                    gameState = 'result';
+                    renderResult();
+                }
+            }, 1000);
+        }
+
+        // 初始渲染
+        renderStart();
+
+    </script>
+</body>
+</html>
