@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票合理估值計算機</title>
+    <title>萊恩會漲-股票合理估值計算機</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Lucide Icons -->
@@ -35,7 +35,7 @@
             <div class="inline-flex items-center justify-center p-3 bg-blue-600 rounded-full text-white shadow-lg mb-2">
                 <i data-lucide="calculator" class="w-8 h-8"></i>
             </div>
-            <h1 class="text-3xl font-bold text-slate-900">股票合理估值計算機</h1>
+            <h1 class="text-3xl font-bold text-slate-900">萊恩會漲-股票合理估值計算機</h1>
             <p class="text-slate-600">選擇適合的模型，輸入數值，快速算出目標價</p>
         </header>
 
@@ -81,7 +81,7 @@
                     <thead class="text-xs text-slate-500 uppercase bg-slate-50">
                         <tr>
                             <th class="px-6 py-3 whitespace-nowrap">估值方法</th>
-                            <th class="px-6 py-3 whitespace-nowrap">適用公司類型</th>
+                            <th class="px-6 py-3 whitespace-nowrap">適用公司類型 (含範例)</th>
                             <th class="px-6 py-3 whitespace-nowrap">核心公式</th>
                             <th class="px-6 py-3 min-w-[200px]">說明</th>
                         </tr>
@@ -89,31 +89,31 @@
                     <tbody class="divide-y divide-slate-100">
                         <tr class="bg-white hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-blue-600">本益比法 (P/E)</td>
-                            <td class="px-6 py-4">獲利穩定的成熟股</td>
+                            <td class="px-6 py-4">獲利穩定的成熟股 (如: 台積電)</td>
                             <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = EPS × 合理倍數</td>
                             <td class="px-6 py-4">最常見，但不適用虧損公司。</td>
                         </tr>
                         <tr class="bg-white hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-blue-600">股價淨值比法 (P/B)</td>
-                            <td class="px-6 py-4">景氣循環股、金融股</td>
+                            <td class="px-6 py-4">景氣循環股、金融股 (如: 中鋼、兆豐金)</td>
                             <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 每股淨值 × 合理倍數</td>
                             <td class="px-6 py-4">當獲利不穩時，看資產(淨值)較安全。</td>
                         </tr>
                         <tr class="bg-white hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-blue-600">股價營收比法 (P/S)</td>
-                            <td class="px-6 py-4">新創、高成長未獲利股</td>
+                            <td class="px-6 py-4">新創、高成長未獲利股 (如: 軟體SaaS)</td>
                             <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 每股營收 × 合理倍數</td>
                             <td class="px-6 py-4">看市場佔有率與營收規模。</td>
                         </tr>
                         <tr class="bg-white hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-blue-600">葛拉漢定價法</td>
-                            <td class="px-6 py-4">傳產、價值被低估股</td>
+                            <td class="px-6 py-4">傳產、價值被低估股 (如: 水泥、紡織)</td>
                             <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">√(22.5 × EPS × 每股淨值)</td>
                             <td class="px-6 py-4">保守型投資，同時看獲利與淨值。</td>
                         </tr>
                         <tr class="bg-white hover:bg-slate-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-blue-600">股利折現模型 (DDM)</td>
-                            <td class="px-6 py-4">配息穩定的定存股</td>
+                            <td class="px-6 py-4">配息穩定的定存股 (如: 中華電)</td>
                             <td class="px-6 py-4 font-mono text-xs bg-slate-50 rounded w-max">股價 = 股利 ÷ (折現率 - 成長率)</td>
                             <td class="px-6 py-4">假設價值來自於未來領到的股息。</td>
                         </tr>
